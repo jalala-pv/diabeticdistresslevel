@@ -1,0 +1,6 @@
+myapp/diabetes_rf_model1.pkl
+myapp/diabetes_rf_model.pkl
+*.pkl
+__pycache__/
+db.sqlite3
+myapp/randomforest_dataset.csv
