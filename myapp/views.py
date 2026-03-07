@@ -7,9 +7,12 @@ from django.shortcuts import render, redirect
 import joblib
 import numpy as np
 import os
+# Explain AI predictions
 import shap
 import matplotlib.pyplot as plt
+# Convert image to HTML format
 import base64
+# Store image temporarily
 from io import BytesIO
 from .models import logs, Users
 
@@ -282,114 +285,6 @@ def upload_logs(request):
     return render(request,'users/randomupload.html')
 
 
-
-
-
-
-
-
-# import numpy as np
-# import joblib
-# import shap
-# import matplotlib
-#
-# matplotlib.use('Agg')  # Required for non-GUI environments like Django
-# import matplotlib.pyplot as plt
-# import pandas as pd
-# import base64
-# from io import BytesIO
-# from django.shortcuts import render
-#
-#
-# def upload_logs_post(request):
-#     if request.method == 'POST':
-#         try:
-#             def to_num(val):
-#                 if val is None or val == '': return 0
-#                 try:
-#                     return float(val)
-#                 except ValueError:
-#                     return 0
-#
-#             # 21 Features in EXACT training order
-#             feature_names = [
-#                 'HighBP', 'HighChol', 'CholCheck', 'BMI', 'Smoker', 'Stroke',
-#                 'HeartDiseaseorAttack', 'PhysActivity', 'Fruits', 'Veggies',
-#                 'HvyAlcoholConsump', 'AnyHealthcare', 'NoDocbcCost', 'GenHlth',
-#                 'MentHlth', 'PhysHlth', 'DiffWalk', 'Sex', 'Age', 'Education', 'Income'
-#             ]
-#
-#             data = [to_num(request.POST.get(f)) for f in feature_names]
-#             input_data = np.array([data])
-#
-#             # Load Model
-#             model_path = r'D:\diabeticdistress-master-01-03-26\diabeticdistress-master\myapp\diabetes_rf_model1.pkl'
-#             model = joblib.load(model_path)
-#
-#             # Fix: Use .classes_ (with underscore)
-#             print("Model Classes identified:", model.classes_)
-#
-#             # Prediction
-#             prediction_idx = int(model.predict(input_data)[0])
-#             label_map = {0: "Low Distress", 1: "Moderate Distress", 2: "High Distress"}
-#             result = label_map.get(prediction_idx, "Unknown")
-#
-#             # --- SHAP EXPLANATION LOGIC ---
-#             explainer = shap.TreeExplainer(model)
-#             shap_values = explainer.shap_values(input_data)
-#
-#             # Handle Multi-class SHAP output (list of arrays or 3D array)
-#             if isinstance(shap_values, list):
-#                 # Older SHAP versions: list[class_index][sample_index]
-#                 shap_contrib = shap_values[prediction_idx][0]
-#             else:
-#                 # Newer SHAP versions: [sample, feature, class]
-#                 # If 2D (binary), it might only have one set of values
-#                 if len(shap_values.shape) == 3:
-#                     shap_contrib = shap_values[0, :, prediction_idx]
-#                 else:
-#                     shap_contrib = shap_values[0]
-#
-#             # Create DataFrame for Plotting
-#             shap_df = pd.DataFrame({
-#                 'feature': feature_names,
-#                 'shap_value': shap_contrib
-#             })
-#
-#             # Sort by absolute impact
-#             shap_df = shap_df.reindex(shap_df['shap_value'].abs().sort_values(ascending=True).index)
-#
-#             # Plotting with Dark Mode Theme
-#             plt.style.use('dark_background')
-#             fig, ax = plt.subplots(figsize=(10, 8))
-#
-#             colors = ['#FF4136' if v > 0 else '#0074D9' for v in shap_df['shap_value']]
-#             ax.barh(shap_df['feature'], shap_df['shap_value'], color=colors)
-#
-#             ax.set_title(f'Why AI predicted: {result}', fontsize=14, color='#06A3DA', pad=20)
-#             ax.set_xlabel('Impact on Prediction (SHAP Value)')
-#             ax.spines['top'].set_visible(False)
-#             ax.spines['right'].set_visible(False)
-#
-#             plt.tight_layout()
-#
-#             # Save plot to base64
-#             buffer = BytesIO()
-#             plt.savefig(buffer, format='png', bbox_inches='tight', facecolor='#11233E')
-#             image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
-#             plt.close(fig)
-#
-#             return render(request, 'users/randomupload.html', {
-#                 'result': result,
-#                 'explanation_plot': image_base64
-#             })
-#
-#         except Exception as e:
-#             import traceback
-#             print(traceback.format_exc())  # Print full error to console for debugging
-#             return render(request, 'users/randomupload.html', {'result': f"Error: {str(e)}"})
-#
-#     return render(request, 'users/randomupload.html')
 import numpy as np
 import joblib
 import shap
@@ -406,10 +301,12 @@ from django.shortcuts import render
 def upload_logs_post(request):
     if request.method == 'POST':
         try:
+            # This creates a helper function to convert form input into numbers.
             def to_num(val):
                 if val is None or val == '': return 0
                 try:
                     return float(val)
+                # If the input cannot be converted:
                 except (ValueError, TypeError):
                     return 0
 
@@ -418,7 +315,9 @@ def upload_logs_post(request):
             feature_names = [
                 'HighBP', 'HighChol', 'CholCheck', 'BMI', 'Smoker', 'Stroke',
                 'HeartDiseaseorAttack', 'PhysActivity', 'Fruits', 'Veggies',
-                'HvyAlcoholConsump', 'AnyHealthcare', 'NoDocbcCost', 'GenHlth',
+                'HvyAlcoholConsump', 'AnyHealthcare',
+                # Unable to visit doctor due to cost.
+                'NoDocbcCost', 'GenHlth',
                 'MentHlth', 'PhysHlth', 'DiffWalk', 'Sex', 'Age', 'Education', 'Income'
             ]
 
@@ -431,12 +330,17 @@ def upload_logs_post(request):
             model = joblib.load(model_path)
 
             # Prediction logic
+            # The model predicts the distress class 0 1 2
             prediction_idx = int(model.predict(input_data)[0])
             label_map = {0: "Low Distress", 1: "Moderate Distress", 2: "High Distress"}
+            # Converts numeric result into readable text.
             result = label_map.get(prediction_idx, "Unknown")
 
             # SHAP Explanation logic for multi-class
+            # SHAP explains why the model made the prediction.
+            # TreeExplainer is used because Random Forest is tree based.
             explainer = shap.TreeExplainer(model)
+            # SHAP calculates feature contributions. BMI +0.35
             shap_values = explainer.shap_values(input_data)
 
             # Extract contributions for the specific class predicted
@@ -446,6 +350,7 @@ def upload_logs_post(request):
             else:
                 # SHAP returns a 3D array [samples, features, classes]
                 if len(shap_values.shape) == 3:
+                    # Select SHAP values for:first sample all features predicted class
                     shap_contrib = shap_values[0, :, prediction_idx]
                 else:
                     shap_contrib = shap_values[0]
@@ -465,6 +370,7 @@ def upload_logs_post(request):
 
             # Red for positive impact (increasing distress), Blue for negative
             colors = ['#FF4136' if v > 0 else '#0074D9' for v in shap_df['shap_value']]
+            # Creates the SHAP explanation graph.
             ax.barh(shap_df['feature'], shap_df['shap_value'], color=colors)
 
             ax.set_title(f'AI Decision Factors: {result}', fontsize=14, color='#06A3DA', pad=20)
@@ -476,10 +382,11 @@ def upload_logs_post(request):
 
             plt.tight_layout()
 
-            # Encode image to Base64 for the template
+            # Encode image to Base64 for the template Temporary memory to store the graph image.
             buffer = BytesIO()
-            # Match the background color to your CSS card-bg
+            # Match the background color to your CSS card-bg Graph is saved as PNG image.
             plt.savefig(buffer, format='png', bbox_inches='tight', facecolor='#11233E')
+            # Converts image into Base64 string.this allows embedding directly in HTML.
             image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
             plt.close(fig)
 
@@ -490,6 +397,7 @@ def upload_logs_post(request):
 
         except Exception as e:
             import traceback
+            # Print full error in console.
             print(traceback.format_exc())
             return render(request, 'users/randomupload.html', {'result': f"Error: {str(e)}"})
 
