@@ -1,8 +1,11 @@
 import pandas as pd
 import numpy as np
+# RandomForestClassifier Machine learning algorithm
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
+# Shows model performance
 from sklearn.metrics import classification_report
+# Saves trained model
 import joblib
 
 # Load the dataset using a raw string for the Windows path
@@ -20,7 +23,7 @@ features = [
 X = df[features]
 y = df['Diabetes_012'] # Target: 0=Low, 1=Moderate, 2=High
 
-# Split the data
+# Split the data random_state=42 ensures same split every time.
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 # Training with Optimizations:
@@ -32,11 +35,15 @@ model = RandomForestClassifier(
     class_weight='balanced',
     random_state=42
 )
-
+# This step trains the model.
 model.fit(X_train, y_train)
 
 # VERIFICATION: Print a report to see how well it's actually doing
 y_pred = model.predict(X_test)
+# Precision Correct positive predictions
+# Recall How many real cases detected
+# F1-score Balance between precision & recall
+# Support Number of samples
 print("--- Training Performance Report ---")
 print(classification_report(y_test, y_pred))
 
